@@ -132,7 +132,9 @@ Returns a typed `AuthgearClaims` object: `sub`, `iss`, `aud`, `isVerified`,
 
 - No/malformed `Authorization` header → `401`.
 - Signature/claim/expiry failure → `401`. Never leak verification internals to
-  the client; log details server-side.
+  the client. v1 does not log verification failures server-side, to avoid forcing
+  a logger dependency and log noise; consumers can wrap the guard or add an
+  exception filter if they want auditing.
 - Discovery/JWKS fetch failure (startup or first request) → surfaced as a clear
   configuration error, not a silent `401`.
 
