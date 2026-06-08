@@ -20,7 +20,7 @@ export class AuthgearModule {
         AuthgearTokenService,
         AuthgearAuthGuard,
         ...(global
-          ? [{ provide: APP_GUARD, useClass: AuthgearAuthGuard }]
+          ? [{ provide: APP_GUARD, useExisting: AuthgearAuthGuard }]
           : []),
       ],
       exports: [AuthgearTokenService, AuthgearAuthGuard],
@@ -41,7 +41,7 @@ export class AuthgearModule {
         AuthgearTokenService,
         AuthgearAuthGuard,
         ...(options.global
-          ? [{ provide: APP_GUARD, useClass: AuthgearAuthGuard }]
+          ? [{ provide: APP_GUARD, useExisting: AuthgearAuthGuard }]
           : []),
       ],
       exports: [AuthgearTokenService, AuthgearAuthGuard],

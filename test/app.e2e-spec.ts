@@ -74,3 +74,44 @@ describe('AuthgearModule (e2e)', () => {
       .expect(401);
   });
 });
+
+describe('AuthgearModule forRootAsync (e2e)', () => {
+  let app: INestApplication;
+  let keys: TestKeys;
+  let restoreFetch: () => void;
+
+  beforeAll(async () => {
+    keys = await makeKeys();
+    restoreFetch = mockAuthgearFetch(keys.publicJwk);
+
+    const moduleRef = await Test.createTestingModule({
+      imports: [
+        AuthgearModule.forRootAsync({
+          global: true,
+          useFactory: async () => ({ endpoint: ENDPOINT }),
+        }),
+      ],
+      controllers: [TestController],
+    }).compile();
+
+    app = moduleRef.createNestApplication();
+    await app.init();
+  });
+
+  afterAll(async () => {
+    await app.close();
+    restoreFetch();
+  });
+
+  it('applies the global guard configured via async options', async () => {
+    await request(app.getHttpServer()).get('/protected').expect(401);
+  });
+
+  it('verifies tokens with options resolved from the async factory', async () => {
+    const token = await signToken(keys.privateKey);
+    await request(app.getHttpServer())
+      .get('/protected')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200, { sub: 'e3079029-f123-4c56-80c1-c2cd63a5b6af' });
+  });
+});
