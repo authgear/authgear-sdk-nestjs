@@ -88,4 +88,30 @@ describe('AuthgearTokenService', () => {
     const service = new AuthgearTokenService({ endpoint: ENDPOINT });
     await expect(service.verifyToken('x')).rejects.toThrow();
   });
+
+  it('refreshes JWKS and retries when the signing key has rotated', async () => {
+    jest.useFakeTimers();
+    try {
+      // Service initializes and caches the original key set.
+      const service = await buildService();
+
+      // Advance past the 30s refresh cooldown so the retry branch is eligible,
+      // but stay within the 5-minute staleness window so the proactive refresh
+      // does NOT fire — we want the JWKSNoMatchingKey retry path specifically.
+      jest.setSystemTime(Date.now() + 60_000);
+
+      // Authgear rotates its signing key: a new kid is now served by the JWKS endpoint.
+      const rotated = await makeKeys('rotated-key');
+      restoreFetch();
+      restoreFetch = mockAuthgearFetch(rotated.publicJwk);
+
+      const token = await signToken(rotated.privateKey, { kid: 'rotated-key' });
+
+      // First verify misses the cached key (JWKSNoMatchingKey) -> refresh -> retry succeeds.
+      const claims = await service.verifyToken(token);
+      expect(claims.sub).toBe('e3079029-f123-4c56-80c1-c2cd63a5b6af');
+    } finally {
+      jest.useRealTimers();
+    }
+  });
 });

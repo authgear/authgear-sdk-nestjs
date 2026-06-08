@@ -11,13 +11,13 @@ export interface TestKeys {
 }
 
 /** Generate an RS256 key pair and the matching public JWK (with kid/alg/use). */
-export async function makeKeys(): Promise<TestKeys> {
+export async function makeKeys(kid: string = KID): Promise<TestKeys> {
   const { privateKey, publicKey } = await generateKeyPair('RS256');
   const publicJwk = (await exportJWK(publicKey)) as unknown as Record<
     string,
     unknown
   >;
-  publicJwk.kid = KID;
+  publicJwk.kid = kid;
   publicJwk.alg = 'RS256';
   publicJwk.use = 'sig';
   return { privateKey, publicJwk };
@@ -29,6 +29,7 @@ interface SignOptions {
   clientID?: string;
   expiresIn?: string; // e.g. '1h' or '-1h' for already-expired
   extraClaims?: Record<string, unknown>;
+  kid?: string;
 }
 
 /** Sign a JWT access token resembling Authgear's shape. */
@@ -44,7 +45,7 @@ export async function signToken(
     ...opts.extraClaims,
   };
   return new SignJWT(payload)
-    .setProtectedHeader({ alg: 'RS256', kid: KID })
+    .setProtectedHeader({ alg: 'RS256', kid: opts.kid ?? KID })
     .setSubject('e3079029-f123-4c56-80c1-c2cd63a5b6af')
     .setIssuedAt()
     .setIssuer(opts.issuer ?? ENDPOINT)

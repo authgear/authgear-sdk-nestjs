@@ -62,6 +62,8 @@ export class AuthgearTokenService implements OnModuleInit {
     return config as OidcConfiguration;
   }
 
+  // Redundant concurrent refreshes are tolerated by design: refreshes are
+  // idempotent and last writer wins, so we intentionally skip in-flight de-duplication.
   private async refreshJwks(): Promise<void> {
     if (!this.jwksUri) {
       throw new Error('AuthgearTokenService is not initialized');
@@ -123,6 +125,8 @@ export class AuthgearTokenService implements OnModuleInit {
     return Date.now() - this.jwksFetchedAt > maxAge;
   }
 
+  // lastRefreshAttempt is updated by BOTH the proactive staleness refresh and the
+  // retry refresh, intentionally capping total JWKS refetches within the cooldown window.
   private canRetryRefresh(): boolean {
     return Date.now() - this.lastRefreshAttempt > JWKS_REFRESH_COOLDOWN;
   }
