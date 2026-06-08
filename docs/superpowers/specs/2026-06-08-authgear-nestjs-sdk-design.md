@@ -91,9 +91,19 @@ On initialization the module fetches Authgear's OIDC discovery document at
 
 Uses **`jose`**:
 
-- `createRemoteJWKSet(jwks_uri)` provides JWKS fetching, in-memory caching, and
-  key-rotation cooldown out of the box.
+- The service fetches the JWKS document itself from `jwks_uri` via `fetch` and
+  builds a key set with `createLocalJWKSet`, caching it in memory. It refreshes
+  the key set when it is older than `jwksCacheMaxAge` (default 5 min) and, on a
+  `JWKSNoMatchingKey` error, refetches once (subject to a short cooldown) to
+  pick up rotated signing keys.
 - `jwtVerify` performs per-request verification, offline after warm-up.
+
+> **Why not `createRemoteJWKSet`?** jose's Node build retrieves JWKS via
+> `node:https` (not `global.fetch`), which cannot be intercepted by mocking
+> `fetch` and so is untestable without real network or build-swapping hacks.
+> Fetching the JWKS ourselves keeps both discovery and key retrieval on one
+> mockable path (`fetch`, available on Node 18+), and we reimplement the small
+> amount of caching/rotation behavior we need.
 
 Checks performed:
 
@@ -122,7 +132,9 @@ Returns a typed `AuthgearClaims` object: `sub`, `iss`, `aud`, `isVerified`,
 
 - No/malformed `Authorization` header → `401`.
 - Signature/claim/expiry failure → `401`. Never leak verification internals to
-  the client; log details server-side.
+  the client. v1 does not log verification failures server-side, to avoid forcing
+  a logger dependency and log noise; consumers can wrap the guard or add an
+  exception filter if they want auditing.
 - Discovery/JWKS fetch failure (startup or first request) → surfaced as a clear
   configuration error, not a silent `401`.
 
