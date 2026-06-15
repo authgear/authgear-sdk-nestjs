@@ -3,6 +3,10 @@
   "version": "0.1.1",
   "description": "Authgear SDK for NestJS — validate Authgear JWT access tokens and protect routes.",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/authgear/authgear-sdk-nestjs"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
