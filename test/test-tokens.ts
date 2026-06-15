@@ -58,10 +58,13 @@ export async function signToken(
  * Install a global.fetch mock that serves the OIDC discovery document and JWKS.
  * Returns a restore function.
  */
-export function mockAuthgearFetch(publicJwk: Record<string, unknown>): () => void {
+export function mockAuthgearFetch(
+  publicJwk: Record<string, unknown>,
+): () => void {
   const original = global.fetch;
   global.fetch = (async (input: any) => {
-    const url = typeof input === 'string' ? input : input.url ?? String(input);
+    const url =
+      typeof input === 'string' ? input : (input.url ?? String(input));
     if (url === DISCOVERY_URL) {
       return new Response(
         JSON.stringify({ issuer: ENDPOINT, jwks_uri: JWKS_URI }),

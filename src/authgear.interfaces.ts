@@ -20,8 +20,10 @@ export interface AuthgearModuleRootOptions extends AuthgearModuleOptions {
 }
 
 /** Options accepted by AuthgearModule.forRootAsync(). */
-export interface AuthgearModuleAsyncOptions
-  extends Pick<ModuleMetadata, 'imports'> {
+export interface AuthgearModuleAsyncOptions extends Pick<
+  ModuleMetadata,
+  'imports'
+> {
   /** Register AuthgearAuthGuard as a global APP_GUARD. Default false. */
   global?: boolean;
   /** Providers to inject into useFactory. */

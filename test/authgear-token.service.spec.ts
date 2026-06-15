@@ -24,7 +24,9 @@ describe('AuthgearTokenService', () => {
     restoreFetch();
   });
 
-  async function buildService(clientID?: string): Promise<AuthgearTokenService> {
+  async function buildService(
+    clientID?: string,
+  ): Promise<AuthgearTokenService> {
     const service = new AuthgearTokenService({ endpoint: ENDPOINT, clientID });
     await service.onModuleInit();
     return service;
@@ -73,13 +75,17 @@ describe('AuthgearTokenService', () => {
 
   it('rejects a token whose client_id does not match configured clientID', async () => {
     const service = await buildService('expected-client');
-    const token = await signToken(keys.privateKey, { clientID: 'other-client' });
+    const token = await signToken(keys.privateKey, {
+      clientID: 'other-client',
+    });
     await expect(service.verifyToken(token)).rejects.toThrow();
   });
 
   it('accepts a token whose client_id matches configured clientID', async () => {
     const service = await buildService('expected-client');
-    const token = await signToken(keys.privateKey, { clientID: 'expected-client' });
+    const token = await signToken(keys.privateKey, {
+      clientID: 'expected-client',
+    });
     const claims = await service.verifyToken(token);
     expect(claims.clientID).toBe('expected-client');
   });

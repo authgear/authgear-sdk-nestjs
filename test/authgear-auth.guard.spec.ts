@@ -25,10 +25,7 @@ function mockContext(headers: Record<string, string>): {
 }
 
 describe('AuthgearAuthGuard', () => {
-  function buildGuard(opts: {
-    isPublic?: boolean;
-    verify?: jest.Mock;
-  }) {
+  function buildGuard(opts: { isPublic?: boolean; verify?: jest.Mock }) {
     const reflector = {
       getAllAndOverride: jest.fn().mockReturnValue(opts.isPublic ?? false),
     } as unknown as Reflector;
@@ -63,7 +60,9 @@ describe('AuthgearAuthGuard', () => {
   it('attaches claims and allows a valid token', async () => {
     const verify = jest.fn().mockResolvedValue(claims);
     const guard = buildGuard({ verify });
-    const { ctx, request } = mockContext({ authorization: 'Bearer good.token' });
+    const { ctx, request } = mockContext({
+      authorization: 'Bearer good.token',
+    });
     await expect(guard.canActivate(ctx)).resolves.toBe(true);
     expect(verify).toHaveBeenCalledWith('good.token');
     expect(request[AUTHGEAR_REQUEST_PROPERTY]).toEqual(claims);

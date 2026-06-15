@@ -8,7 +8,10 @@ describe('@Public()', () => {
       @Public()
       handler() {}
     }
-    const value = Reflect.getMetadata(IS_PUBLIC_KEY, Controller.prototype.handler);
+    const value = Reflect.getMetadata(
+      IS_PUBLIC_KEY,
+      Controller.prototype.handler,
+    );
     expect(value).toBe(true);
   });
 });

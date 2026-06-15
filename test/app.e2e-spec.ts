@@ -50,9 +50,7 @@ describe('AuthgearModule (e2e)', () => {
   });
 
   it('allows public routes without a token', async () => {
-    await request(app.getHttpServer())
-      .get('/public')
-      .expect(200, { ok: true });
+    await request(app.getHttpServer()).get('/public').expect(200, { ok: true });
   });
 
   it('rejects protected routes without a token', async () => {
