@@ -7,7 +7,7 @@
 With Authgear SDK for NestJS, you can protect your NestJS resource server (API) with [Authgear](https://www.authgear.com/) in just **a few lines of code**.
 It validates Authgear **JWT access tokens** offline using OIDC discovery and JWKS — no network round-trip to Authgear on every request — and provides a NestJS module, an auth guard, and decorators for reading the authenticated user.
 
-**Quick links** — 📚 [Documentation](https://authgear.github.io/authgear-sdk-nestjs/) · 🏁 [Getting Started](#getting-started) · 🛠️ [Troubleshooting](#troubleshooting) · 👥 [Contributing](#contributing)
+**Quick links** — 📚 [Documentation](https://authgear.github.io/authgear-sdk-nestjs/) · 🏁 [Getting Started](#getting-started) · 🗺️ [Roadmap](#roadmap) · 🛠️ [Troubleshooting](#troubleshooting) · 👥 [Contributing](#contributing)
 
 ## What is Authgear?
 
@@ -165,6 +165,17 @@ Authorization: Bearer <jwt-access-token>
 | `clockToleranceSeconds` | `number` | | `0` | Leeway in seconds applied to `exp`/`iat` checks. |
 
 You can also inject `AuthgearTokenService` directly if you need to verify a token outside of the guard.
+
+## Roadmap
+
+Planned additions, all staying within the resource-server scope:
+
+- **Role- and permission-based access control (RBAC).** `@RequireRoles()` and `@RequirePermissions()` decorators that authorize requests against roles/permissions read from configurable JWT claim paths (returning `403` on failure). Authgear's JWT access token does not carry roles or permissions by default, so this will rely on injecting them into the token via an [Authgear JavaScript Hook](https://docs.authgear.com/integration/add-custom-fields-to-a-jwt-access-token) — keeping validation fully offline.
+- **Opaque (online) token validation.** An optional validation strategy that verifies access tokens via Authgear's introspection / UserInfo endpoint instead of offline JWKS. This removes the "Issue JWT as access token" requirement and supports **instant revocation**, at the cost of a network round-trip per request.
+- **Machine-to-machine (M2M) token support.** First-class validation of the JWT access tokens Authgear issues to [M2M applications](https://docs.authgear.com/reference/tokens), plus a way to distinguish service callers from end users.
+- **Step-up / recent-authentication checks.** A `@RequireRecentAuth(maxAgeSeconds)` decorator that enforces a maximum age on the token's `auth_time` claim, so sensitive routes can require the user to have authenticated recently.
+
+This SDK is intentionally scoped to the **resource-server** (token-validation) role. Session lifecycle operations (refresh/revoke), the OAuth login flow, user management, and non-auth utilities (rate limiting, audit logging, per-user caching) are out of scope — use the relevant Authgear client SDK / Admin API and the standard NestJS ecosystem (`@nestjs/throttler`, interceptors) for those.
 
 ## Troubleshooting
 
