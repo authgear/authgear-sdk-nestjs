@@ -8,8 +8,7 @@ export function currentUserFactory(
   ctx: ExecutionContext,
 ): AuthgearClaims | AuthgearClaims[keyof AuthgearClaims] | undefined {
   const request = ctx.switchToHttp().getRequest();
-  const claims: AuthgearClaims | undefined =
-    request[AUTHGEAR_REQUEST_PROPERTY];
+  const claims: AuthgearClaims | undefined = request[AUTHGEAR_REQUEST_PROPERTY];
   if (!claims) return undefined;
   return data ? claims[data] : claims;
 }

@@ -1,0 +1,72 @@
+# @authgear/nestjs
+
+**Authgear SDK for NestJS** — protect your NestJS API by validating Authgear
+**JWT access tokens** offline, with a module, an auth guard, and decorators.
+
+## What it does
+
+- **Offline JWT validation** — verifies Authgear access tokens locally using OIDC
+  discovery and a cached JWKS, with no network round-trip per request
+- **Auth guard** — `AuthgearAuthGuard` rejects requests without a valid
+  `Authorization: Bearer <token>` header
+- **Route protection** — register the guard globally (`APP_GUARD`) or apply it
+  per route with `@UseGuards(AuthgearAuthGuard)`
+- **Public routes** — whitelist endpoints with the `@Public()` decorator when the
+  guard is global
+- **Typed claims** — inject the verified token claims into a handler with
+  `@CurrentUser()`
+
+## How it works
+
+`@authgear/nestjs` is a **resource-server** SDK. It does not perform sign-in or
+manage sessions — that is the job of your front-end / OAuth client. Instead, it
+verifies the JWT access tokens that Authgear issues:
+
+1. On startup, the module discovers your project's OIDC configuration from
+   `<endpoint>/.well-known/openid-configuration`.
+2. It fetches and caches the JWKS (public signing keys).
+3. On each request, the guard verifies the bearer token's signature, issuer,
+   audience, and expiry locally. Rotated keys are picked up by refreshing the
+   cached JWKS.
+
+## Requirements
+
+- **NestJS** 10 or 11
+- **Node.js** >= 18
+- **"Issue JWT as access token"** must be enabled for your Authgear application.
+
+## Quick example
+
+```ts title="app.module.ts"
+import { Module } from "@nestjs/common";
+import { AuthgearModule } from "@authgear/nestjs";
+
+@Module({
+  imports: [
+    AuthgearModule.forRoot({
+      endpoint: "https://my-project.authgear.cloud",
+      global: true, // protect every route by default
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+```ts title="app.controller.ts"
+import { Controller, Get } from "@nestjs/common";
+import { Public, CurrentUser, AuthgearClaims } from "@authgear/nestjs";
+
+@Controller()
+export class AppController {
+  @Public()
+  @Get("health")
+  health() {
+    return { ok: true };
+  }
+
+  @Get("me")
+  me(@CurrentUser() user: AuthgearClaims) {
+    return { userId: user.sub };
+  }
+}
+```

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@authgear/nestjs example — test frontend</title>
+    <style>
+      body {
+        font-family: -apple-system, system-ui, sans-serif;
+        max-width: 760px;
+        margin: 40px auto;
+        padding: 0 16px;
+        color: #1a1a1a;
+      }
+      h1 {
+        font-size: 1.4rem;
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+        margin: 16px 0;
+      }
+      button {
+        padding: 8px 14px;
+        font-size: 0.95rem;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        background: #f7f7f7;
+        cursor: pointer;
+      }
+      button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      .status {
+        font-weight: 600;
+      }
+      pre {
+        background: #0d1117;
+        color: #c9d1d9;
+        padding: 14px;
+        border-radius: 8px;
+        overflow: auto;
+        min-height: 60px;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      code {
+        background: #eee;
+        padding: 1px 5px;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>@authgear/nestjs — test frontend</h1>
+    <p>
+      Logs in with Authgear (token approach), then calls the protected
+      <code>GET /me</code> route on the NestJS backend using the access token.
+    </p>
+
+    <div class="row">
+      <button id="login" disabled>Log in</button>
+      <button id="callMe" disabled>Call /me</button>
+      <button id="callHealth">Call /health (public)</button>
+      <button id="logout" disabled>Log out</button>
+    </div>
+
+    <p>Session state: <span class="status" id="status">…</span></p>
+    <pre id="output">Configuring Authgear…</pre>
+
+    <script src="https://unpkg.com/@authgear/web@5.1.0/dist/authgear-web.iife.js"></script>
+    <script>
+      // --- Config: set these to your Authgear project + client (see README) ---
+      const ENDPOINT = "https://YOUR_PROJECT.authgear.cloud";
+      const CLIENT_ID = "YOUR_CLIENT_ID";
+      const REDIRECT_URI = "http://localhost:8080/"; // register this exact value on the client in Authgear
+      const API_BASE = "http://localhost:3000";
+
+      const ag = window.authgear.default;
+      const $ = (id) => document.getElementById(id);
+      const setStatus = (s) => ($("status").textContent = s);
+      const log = (o) =>
+        ($("output").textContent =
+          typeof o === "string" ? o : JSON.stringify(o, null, 2));
+
+      function refreshUI() {
+        const authed = ag.sessionState === "AUTHENTICATED";
+        $("login").disabled = authed;
+        $("callMe").disabled = !authed;
+        $("logout").disabled = !authed;
+        setStatus(ag.sessionState || "NO_SESSION");
+      }
+
+      $("login").onclick = () =>
+        ag.startAuthentication({ redirectURI: REDIRECT_URI, prompt: "login" });
+
+      $("logout").onclick = async () => {
+        await ag.logout({ redirectURI: REDIRECT_URI });
+      };
+
+      $("callHealth").onclick = async () => {
+        try {
+          const res = await fetch(API_BASE + "/health");
+          log({ route: "/health", httpStatus: res.status, body: await res.json() });
+        } catch (e) {
+          log("Error calling /health: " + (e?.message ?? String(e)));
+        }
+      };
+
+      $("callMe").onclick = async () => {
+        try {
+          // ag.fetch() automatically attaches the Authgear access token and
+          // refreshes it if needed — this is what your real frontend would do.
+          const res = await ag.fetch(API_BASE + "/me");
+          log({ route: "/me", httpStatus: res.status, body: await res.json() });
+        } catch (e) {
+          log("Error calling /me: " + (e?.message ?? String(e)));
+        }
+      };
+
+      (async () => {
+        try {
+          await ag.configure({
+            endpoint: ENDPOINT,
+            clientID: CLIENT_ID,
+            sessionType: "refresh_token",
+          });
+          // If we are returning from the Authgear login redirect, finish the flow.
+          if (window.location.search.includes("code=")) {
+            await ag.finishAuthentication();
+            window.history.replaceState({}, document.title, REDIRECT_URI);
+          }
+          refreshUI();
+          if (ag.sessionState === "AUTHENTICATED") {
+            log("Logged in. Click “Call /me” to hit the protected route.");
+          } else {
+            log("Not logged in. Click “Log in” to start.");
+          }
+        } catch (e) {
+          setStatus("ERROR");
+          log("Configure/finish error:\n" + (e?.stack ?? String(e)));
+        }
+      })();
+    </script>
+  </body>
+</html>

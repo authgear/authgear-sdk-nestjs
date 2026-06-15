@@ -1,0 +1,67 @@
+# Current User
+
+When `AuthgearAuthGuard` accepts a request, it attaches the verified token
+claims to the request. Inject them into a route handler with the
+`@CurrentUser()` parameter decorator.
+
+```ts title="app.controller.ts"
+import { Controller, Get } from "@nestjs/common";
+import { CurrentUser, AuthgearClaims } from "@authgear/nestjs";
+
+@Controller()
+export class AppController {
+  @Get("me")
+  me(@CurrentUser() user: AuthgearClaims) {
+    return {
+      userId: user.sub,
+      isVerified: user.isVerified,
+    };
+  }
+}
+```
+
+## Selecting a single field
+
+Pass a claim name to extract just that field:
+
+```ts
+@Get("me")
+me(@CurrentUser("sub") userId: string) {
+  return { userId };
+}
+```
+
+## `AuthgearClaims`
+
+`@CurrentUser()` returns a typed `AuthgearClaims` object — a normalized view of
+the verified JWT payload.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `sub` | `string` | Authgear user id (OIDC `sub`). |
+| `iss` | `string` | Issuer — your Authgear endpoint. |
+| `aud` | `string \| string[]` | Audience — your Authgear endpoint. |
+| `clientID` | `string \| undefined` | The token's `client_id` claim, if present. |
+| `isVerified` | `boolean \| undefined` | From `https://authgear.com/claims/user/is_verified`. |
+| `isAnonymous` | `boolean \| undefined` | From `https://authgear.com/claims/user/is_anonymous`. |
+| `canReauthenticate` | `boolean \| undefined` | From `https://authgear.com/claims/user/can_reauthenticate`. |
+| `raw` | `JWTPayload` | The full raw JWT payload, for reading custom claims. |
+
+## Reading custom claims
+
+Anything not surfaced as a typed field is available on `raw`:
+
+```ts
+@Get("me")
+me(@CurrentUser() user: AuthgearClaims) {
+  const email = user.raw["email"];
+  return { userId: user.sub, email };
+}
+```
+
+## Important: availability
+
+`@CurrentUser()` only returns claims for requests that passed through
+`AuthgearAuthGuard`. On a route that was not guarded (for example a `@Public()`
+route, or a route with no guard applied), the claims are not present and
+`@CurrentUser()` resolves to `undefined`.

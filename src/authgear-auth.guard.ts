@@ -5,10 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import {
-  AUTHGEAR_REQUEST_PROPERTY,
-  IS_PUBLIC_KEY,
-} from './authgear.constants';
+import { AUTHGEAR_REQUEST_PROPERTY, IS_PUBLIC_KEY } from './authgear.constants';
 import { AuthgearTokenService } from './authgear-token.service';
 
 @Injectable()
