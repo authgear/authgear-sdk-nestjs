@@ -1,0 +1,8 @@
+dist/
+node_modules/
+coverage/
+docs/.next/
+docs/out/
+docs/content/api/
+docs/node_modules/
+example/dist/

@@ -1,0 +1,84 @@
+# Protecting Routes
+
+`AuthgearAuthGuard` validates the incoming `Authorization: Bearer <token>`
+header. When the token is valid, the request proceeds and the verified claims
+are attached to the request; otherwise the guard throws an
+`UnauthorizedException` (HTTP 401).
+
+There are two ways to apply it.
+
+## Global guard
+
+Pass `global: true` to `forRoot` / `forRootAsync`. This registers the guard as a
+NestJS `APP_GUARD`, so **every route is protected by default**.
+
+```ts title="app.module.ts"
+import { Module } from "@nestjs/common";
+import { AuthgearModule } from "@authgear/nestjs";
+
+@Module({
+  imports: [
+    AuthgearModule.forRoot({
+      endpoint: "https://my-project.authgear.cloud",
+      global: true,
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+With a global guard, opt specific routes out with [`@Public()`](#public-routes).
+
+## Per-route guard
+
+If you do not register the guard globally, apply it to individual controllers or
+handlers with `@UseGuards`:
+
+```ts title="cats.controller.ts"
+import { Controller, Get, UseGuards } from "@nestjs/common";
+import { AuthgearAuthGuard } from "@authgear/nestjs";
+
+@Controller("cats")
+export class CatsController {
+  @UseGuards(AuthgearAuthGuard)
+  @Get()
+  findAll() {
+    return [];
+  }
+}
+```
+
+You can also guard an entire controller by decorating the class:
+
+```ts
+@UseGuards(AuthgearAuthGuard)
+@Controller("cats")
+export class CatsController {}
+```
+
+## Public routes
+
+When the guard is global, mark routes that should skip authentication with
+`@Public()`. It works on a single handler or on a whole controller.
+
+```ts title="app.controller.ts"
+import { Controller, Get } from "@nestjs/common";
+import { Public } from "@authgear/nestjs";
+
+@Controller()
+export class AppController {
+  @Public()
+  @Get("health")
+  health() {
+    return { ok: true };
+  }
+}
+```
+
+`@Public()` only has an effect when the guard runs. If you guard routes
+per-handler with `@UseGuards`, simply omit the guard from the routes you want to
+leave open instead of using `@Public()`.
+
+## Next steps
+
+- [Reading the current user](/usage/current-user)

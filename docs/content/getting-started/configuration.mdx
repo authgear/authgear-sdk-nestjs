@@ -1,0 +1,75 @@
+# Configuration
+
+Register `AuthgearModule` once in your root module. It is a **global** dynamic
+module, so `AuthgearTokenService` and `AuthgearAuthGuard` become available
+everywhere without re-importing.
+
+## `forRoot`
+
+Use `forRoot` when your configuration is static:
+
+```ts title="app.module.ts"
+import { Module } from "@nestjs/common";
+import { AuthgearModule } from "@authgear/nestjs";
+
+@Module({
+  imports: [
+    AuthgearModule.forRoot({
+      endpoint: "https://my-project.authgear.cloud",
+      global: true, // register AuthgearAuthGuard as a global APP_GUARD
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+## `forRootAsync`
+
+Use `forRootAsync` when configuration comes from another provider, such as
+`ConfigService`:
+
+```ts title="app.module.ts"
+import { Module } from "@nestjs/common";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { AuthgearModule } from "@authgear/nestjs";
+
+@Module({
+  imports: [
+    ConfigModule.forRoot(),
+    AuthgearModule.forRootAsync({
+      global: true,
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        endpoint: config.getOrThrow<string>("AUTHGEAR_ENDPOINT"),
+        clientID: config.get<string>("AUTHGEAR_CLIENT_ID"),
+      }),
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+```bash title=".env"
+AUTHGEAR_ENDPOINT=https://my-project.authgear.cloud
+AUTHGEAR_CLIENT_ID=your-client-id
+```
+
+## Options reference
+
+These options apply to both `forRoot` and the object returned by the
+`forRootAsync` factory (the `global` flag is set directly on the `forRootAsync`
+options object).
+
+| Option | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `endpoint` | `string` | ✓ | — | Authgear project endpoint, e.g. `https://my-project.authgear.cloud`. Used for OIDC discovery and as the expected token `aud`/`iss`. |
+| `clientID` | `string` | | — | If set, the verifier also asserts the token's `client_id` claim equals this value. |
+| `global` | `boolean` | | `false` | Register `AuthgearAuthGuard` as a global `APP_GUARD` so every route is protected by default. |
+| `jwksCacheMaxAge` | `number` | | `300000` (5 min) | Max age, in milliseconds, before the cached JWKS is considered stale and refreshed. |
+| `clockToleranceSeconds` | `number` | | `0` | Leeway, in seconds, applied to `exp`/`iat` checks. |
+
+## Next steps
+
+- [Protecting routes](/usage/protecting-routes)
+- [Reading the current user](/usage/current-user)

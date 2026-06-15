@@ -1,0 +1,34 @@
+# Installation
+
+## Requirements
+
+- **NestJS** 10 or 11 (`@nestjs/common`, `@nestjs/core`)
+- **Node.js** >= 18
+- An Authgear application with **"Issue JWT as access token"** enabled
+
+## Install the package
+
+`@authgear/nestjs` relies on [`jose`](https://github.com/panva/jose) for JWT and
+JWKS handling, so install it alongside the SDK:
+
+```bash
+npm install @authgear/nestjs jose
+```
+
+## Enable JWT access tokens in Authgear
+
+This SDK validates **JWT** access tokens offline. Opaque tokens are not
+supported. Enable JWT access tokens before writing any code:
+
+1. Open your project in the [Authgear Portal](https://portal.authgear.com/).
+2. Go to **Applications** and select the OAuth client your API clients use.
+3. Turn on **Issue JWT as access token**.
+4. Click **Save**.
+
+Tokens issued after this change are signed JWTs that `@authgear/nestjs` can
+verify locally using your project's JWKS.
+
+## Next steps
+
+- [Configuration](/getting-started/configuration) — register `AuthgearModule`
+- [Protecting routes](/usage/protecting-routes) — apply the guard
