@@ -1,13 +1,19 @@
 {
   "name": "@authgear/nestjs",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Authgear SDK for NestJS — validate Authgear JWT access tokens and protect routes.",
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist"],
-  "engines": { "node": ">=18.0.0" },
-  "workspaces": ["example"],
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "workspaces": [
+    "example"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "test": "jest",
