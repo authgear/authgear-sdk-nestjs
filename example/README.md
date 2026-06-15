@@ -61,7 +61,31 @@ curl -i http://localhost:3000/me \
 # 200 {"sub":"...","isVerified":true,...}
 ```
 
-Obtain an access token by logging a user into your Authgear project (e.g. via a
-frontend SDK or the Authgear test client). The token must be a **JWT access
-token**, which requires "Issue JWT as access token" to be enabled for the
-application in the Authgear portal.
+Obtain an access token by logging a user into your Authgear project. The token
+must be a **JWT access token**, which requires "Issue JWT as access token" to be
+enabled for the application in the Authgear portal. The easiest way to get one is
+the browser frontend below.
+
+## Browser frontend (`frontend/`)
+
+`frontend/index.html` is a zero-build static page that logs in with the
+[Authgear Web SDK](https://www.npmjs.com/package/@authgear/web) (loaded from a
+CDN) and calls the protected `/me` route with the access token — the realistic
+end-to-end flow. CORS is enabled in the example backend so the browser can call
+the API.
+
+1. In the Authgear portal, use a **Single Page Application** client and:
+   - add `http://localhost:8080/` as a **Redirect URI** (exact match, including
+     the trailing slash);
+   - enable **Issue JWT as access token**.
+2. Edit `frontend/index.html` and set `ENDPOINT` and `CLIENT_ID` to your project.
+3. Serve it (any static server works):
+
+   ```bash
+   cd example/frontend
+   python3 -m http.server 8080
+   ```
+
+4. Open http://localhost:8080, click **Log in**, then **Call /me** — you should
+   see `200` with the verified token claims. **Call /health** works without
+   logging in.
