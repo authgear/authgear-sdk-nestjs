@@ -24,6 +24,7 @@
     "typescript": "^5.7.0"
   },
   "overrides": {
-    "postcss": "^8.5.15"
+    "postcss": "^8.5.15",
+    "dompurify": "3.4.11"
   }
 }
