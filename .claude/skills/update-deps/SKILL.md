@@ -1,5 +1,5 @@
 ---
-name: audit-deps
+name: update-deps
 description: Scan this repo's npm dependencies for known vulnerabilities, auto-apply non-breaking fixes, flag any that need a breaking upgrade, and produce a report. Use when the user asks to audit, scan, or check dependencies for vulnerabilities/CVEs, or to update vulnerable packages.
 allowed-tools: Bash(npm audit:*), Bash(npm ci:*), Bash(npm test:*), Bash(npm run:*), Bash(npm outdated:*), Bash(npm ls:*), Bash(npm install:*), Bash(git status:*), Bash(git diff:*)
 ---
